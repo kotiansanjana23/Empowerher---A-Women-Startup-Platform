@@ -12,6 +12,7 @@ import {
   ChevronUp,
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import logo from "../../../../../../logo.png";
 
 export function Sidebar() {
   const navigate = useNavigate();
@@ -33,10 +34,9 @@ export function Sidebar() {
   };
 
   const navItemStyle = (isActive: boolean) =>
-    `group relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 ${
-      isActive
-        ? "bg-white text-purple-700 shadow-md"
-        : "text-gray-600 hover:bg-purple-50 hover:translate-x-1"
+    `group relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 ${isActive
+      ? "bg-white text-purple-700 shadow-md"
+      : "text-gray-600 hover:bg-purple-50 hover:translate-x-1"
     }`;
 
   return (
@@ -46,11 +46,22 @@ export function Sidebar() {
       <div className="h-1 w-full bg-gradient-to-r from-purple-600 to-pink-500"></div>
 
       {/* Logo */}
-      <div className="p-6 border-b border-purple-100">
-        <h1 className="text-2xl font-semibold bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">
-          EmpowerHer
-        </h1>
-        <p className="text-xs text-gray-500 mt-1">Mentor Dashboard</p>
+      <div className="flex items-center gap-0">
+        <img
+          src={logo}
+          alt="EmpowerHer"
+          className="w-12 h-12 object-contain  -mr-2 -mt-1"
+        />
+
+        <div className="flex flex-col leading-none">
+          <h1 className="text-2xl font-semibold bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">
+            EmpowerHer
+          </h1>
+
+          <p className="text-xs text-gray-500 mt-0">
+            Mentor Dashboard
+          </p>
+        </div>
       </div>
 
       {/* Navigation */}
@@ -104,10 +115,9 @@ export function Sidebar() {
               <NavLink
                 to="session-requests"
                 className={({ isActive }) =>
-                  `block px-3 py-2 rounded-lg text-sm transition-all ${
-                    isActive
-                      ? "bg-white text-purple-700 shadow-sm"
-                      : "text-gray-600 hover:bg-purple-50"
+                  `block px-3 py-2 rounded-lg text-sm transition-all ${isActive
+                    ? "bg-white text-purple-700 shadow-sm"
+                    : "text-gray-600 hover:bg-purple-50"
                   }`
                 }
               >
@@ -117,37 +127,36 @@ export function Sidebar() {
               <NavLink
                 to="session-tracking"
                 className={({ isActive }) =>
-                  `block px-3 py-2 rounded-lg text-sm transition-all ${
-                    isActive
-                      ? "bg-white text-purple-700 shadow-sm"
-                      : "text-gray-600 hover:bg-purple-50"
+                  `block px-3 py-2 rounded-lg text-sm transition-all ${isActive
+                    ? "bg-white text-purple-700 shadow-sm"
+                    : "text-gray-600 hover:bg-purple-50"
                   }`
                 }
               >
-                Session Tracking
+                Session Hub
               </NavLink>
             </div>
           )}
         </div>
 
-        <button
-  onClick={() => {
-    const founders = JSON.parse(localStorage.getItem("myFounders") || "[]");
+        <NavLink to="progress" className={({ isActive }) => navItemStyle(isActive)}>
+          {({ isActive }) => {
 
-    if (founders.length > 0) {
-      navigate(`progress/${founders[0].id}`);
-    } else {
-      alert("No founders available");
-    }
-  }}
-  className="w-full text-left group relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-600 hover:bg-purple-50 hover:translate-x-1 transition-all duration-300"
->
-  <ClipboardCheck
-    size={20}
-    className="group-hover:text-purple-500"
-  />
-  Founder Progress Timeline
-</button>
+            
+            console.log("isActive for progress:", isActive);
+            return(
+            <>
+              {isActive && (
+                <span className="absolute left-0 top-2 h-6 w-1 bg-gradient-to-b from-purple-600 to-pink-500 rounded-r-full"></span>
+              )}
+              <ClipboardCheck
+                size={20}
+                className={isActive ? "text-purple-600" : "group-hover:text-purple-500"}
+              />
+              Founder Progress Timeline
+            </>
+          )}}
+        </NavLink>
 
         <NavLink to="funding-match" className={({ isActive }) => navItemStyle(isActive)}>
           {({ isActive }) => (
@@ -160,6 +169,21 @@ export function Sidebar() {
                 className={isActive ? "text-purple-600" : "group-hover:text-purple-500"}
               />
               Funding Match
+            </>
+          )}
+        </NavLink>
+
+        <NavLink to="workspace" className={({ isActive }) => navItemStyle(isActive)}>
+          {({ isActive }) => (
+            <>
+              {isActive && (
+                <span className="absolute left-0 top-2 h-6 w-1 bg-gradient-to-b from-purple-600 to-pink-500 rounded-r-full"></span>
+              )}
+              <Users
+                size={20}
+                className={isActive ? "text-purple-600" : "group-hover:text-purple-500"}
+              />
+              Investor Workspace
             </>
           )}
         </NavLink>
@@ -212,13 +236,7 @@ export function Sidebar() {
 
       {/* Logout */}
       <div className="p-4 border-t border-purple-100">
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-red-50 hover:text-red-600 transition-all duration-300"
-        >
-          <LogOut size={20} />
-          Logout
-        </button>
+
       </div>
     </aside>
   );

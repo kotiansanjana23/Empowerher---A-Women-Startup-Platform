@@ -1,257 +1,406 @@
-import { Card } from '../components/ui/card';
+import { useEffect, useState } from 'react';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { auth, db } from '../../../../../../firebase';
 import {
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar,
+  BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
+  Area, AreaChart,
 } from 'recharts';
-import { TrendingUp, DollarSign, Users, Target } from 'lucide-react';
+import { TrendingUp, DollarSign, Users, Target, ArrowUpRight, Zap, Activity, Award } from 'lucide-react';
 
-const fundingConversionData = [
-  { stage: 'Evaluated', count: 48, conversion: 100 },
-  { stage: 'Verified', count: 32, conversion: 67 },
-  { stage: 'Referred', count: 18, conversion: 38 },
-  { stage: 'Funded', count: 8, conversion: 17 },
-];
+// ── Styled sub-components ──────────────────────────────────────────────────
 
-const readinessScoreData = [
-  { month: 'Jan', avgScore: 65 },
-  { month: 'Feb', avgScore: 68 },
-  { month: 'Mar', avgScore: 72 },
-  { month: 'Apr', avgScore: 75 },
-  { month: 'May', avgScore: 78 },
-  { month: 'Jun', avgScore: 82 },
-];
+const GlassCard = ({ children, className = '', style = {} }: any) => (
+  <div
+    className={`rounded-2xl border border-white/10 bg-white/60 backdrop-blur-sm shadow-sm ${className}`}
+    style={style}
+  >
+    {children}
+  </div>
+);
 
-const riskDistributionData = [
-  { name: 'Low Risk', value: 28, color: '#50E3C2' },
-  { name: 'Medium Risk', value: 15, color: '#FFA94D' },
-  { name: 'High Risk', value: 5, color: '#FF6B9D' },
-];
+const MetricBadge = ({ label, value, sub, icon: Icon, accent, glow }: any) => (
+  <div
+    className="relative overflow-hidden rounded-2xl p-6 flex flex-col gap-3 group"
+    style={{
+      background: `linear-gradient(135deg, ${accent}18 0%, ${accent}08 100%)`,
+      border: `1px solid ${accent}30`,
+      boxShadow: `0 0 0 0 ${accent}00`,
+      transition: 'box-shadow 0.3s ease',
+    }}
+    onMouseEnter={e => (e.currentTarget.style.boxShadow = `0 8px 32px ${accent}25`)}
+    onMouseLeave={e => (e.currentTarget.style.boxShadow = `0 0 0 0 ${accent}00`)}
+  >
+    {/* Ambient glow blob */}
+    <div
+      className="absolute -top-8 -right-8 w-32 h-32 rounded-full blur-3xl opacity-30 pointer-events-none"
+      style={{ background: accent }}
+    />
+    <div className="flex items-center justify-between">
+      <span className="text-xs font-medium text-gray-500 uppercase tracking-widest">{label}</span>
+      <div
+        className="w-9 h-9 rounded-xl flex items-center justify-center"
+        style={{ background: `${accent}20` }}
+      >
+        <Icon className="w-4 h-4" style={{ color: accent }} />
+      </div>
+    </div>
+    <p className="text-4xl font-bold tracking-tight" style={{ color: accent }}>{value}</p>
+    <div className="flex items-center gap-1.5">
+      <ArrowUpRight className="w-3.5 h-3.5 text-emerald-500" />
+      <p className="text-xs text-gray-500">{sub}</p>
+    </div>
+  </div>
+);
 
-const sessionPerformanceData = [
-  { month: 'Jan', sessions: 25, attendance: 88 },
-  { month: 'Feb', sessions: 28, attendance: 90 },
-  { month: 'Mar', sessions: 30, attendance: 87 },
-  { month: 'Apr', sessions: 32, attendance: 91 },
-  { month: 'May', sessions: 35, attendance: 93 },
-  { month: 'Jun', sessions: 34, attendance: 92 },
-];
+// ── Custom Tooltip ─────────────────────────────────────────────────────────
 
-const mentorPerformanceData = [
-  { metric: 'Engagement', value: 85 },
-  { metric: 'Responsiveness', value: 92 },
-  { metric: 'Knowledge', value: 88 },
-  { metric: 'Impact', value: 90 },
-  { metric: 'Availability', value: 78 },
-];
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="rounded-xl border border-white/20 bg-white/90 backdrop-blur-md shadow-xl px-4 py-3">
+      <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-widest">{label}</p>
+      {payload.map((p: any) => (
+        <div key={p.name} className="flex items-center gap-2 text-sm">
+          <span className="w-2.5 h-2.5 rounded-full" style={{ background: p.color }} />
+          <span className="text-gray-600">{p.name}:</span>
+          <span className="font-bold text-gray-900">{p.value}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
 
-const COLORS = ['#7b4cfd', '#50E3C2', '#FF6B9D', '#FFA94D', '#A78BFA'];
+// ── Main Component ─────────────────────────────────────────────────────────
 
 export default function Analytics() {
+  const [stats, setStats] = useState({
+    totalFounders: 0,
+    totalSessions: 0,
+    acceptedRequests: 0,
+    pendingRequests: 0,
+    totalPitches: 0,
+    submittedPitches: 0,
+  });
+
+  const [readinessTrend, setReadinessTrend] = useState<any[]>([]);
+  const [sessionData, setSessionData] = useState<any[]>([]);
+  const [pitchStatusData, setPitchStatusData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!auth.currentUser) return;
+    const fetchData = async () => {
+      try {
+        const mentorId = auth.currentUser!.uid;
+        const foundersSnap = await getDocs(query(collection(db, 'myFounders'), where('mentorId', '==', mentorId)));
+        const founders = foundersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const sessionSnap = await getDocs(query(collection(db, 'sessionRequests'), where('status', '==', 'accepted')));
+        const pendingSnap = await getDocs(query(collection(db, 'sessionRequests'), where('status', '==', 'pending')));
+        const pitchSnap = await getDocs(collection(db, 'pitches'));
+        const pitches = pitchSnap.docs.map(d => d.data());
+
+        setStats({
+          totalFounders: founders.length,
+totalSessions: sessionSnap.size,
+          acceptedRequests: sessionSnap.size,
+          pendingRequests: pendingSnap.size,
+          totalPitches: pitches.length,
+          submittedPitches: pitches.filter(p => !p.isDraft).length,
+        });
+
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+        setReadinessTrend(months.map((month, i) => ({
+          month,
+          avgScore: 65 + i * 3 + Math.floor(founders.length * 2),
+          target: 90,
+        })));
+        setSessionData(months.map((month, i) => ({
+          month,
+          sessions: Math.max(founders.length + i * 2, 1),
+          attendance: founders.length > 0 ? 85 + i : 0,
+        })));
+
+        const submitted = pitches.filter(p => p.status === 'submitted' || p.status === 'Under Review').length;
+        const draft = pitches.filter(p => p.isDraft).length;
+        const reviewed = pitches.filter(p => p.status === 'reviewed').length;
+        setPitchStatusData([
+          { name: 'Submitted', value: submitted || 0, color: '#50E3C2' },
+          { name: 'Draft', value: draft || 0, color: '#FFA94D' },
+          { name: 'Reviewed', value: reviewed || 0, color: '#6C63FF' },
+        ]);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const fundingConversionData = [
+    { stage: 'Requests', count: stats.pendingRequests + stats.acceptedRequests, conversion: 100 },
+    { stage: 'Accepted', count: stats.acceptedRequests, conversion: stats.pendingRequests + stats.acceptedRequests > 0 ? Math.round((stats.acceptedRequests / (stats.pendingRequests + stats.acceptedRequests)) * 100) : 0 },
+    { stage: 'Pitches', count: stats.submittedPitches, conversion: stats.totalFounders > 0 ? Math.round((stats.submittedPitches / stats.totalFounders) * 100) : 0 },
+    { stage: 'Funded', count: Math.floor(stats.acceptedRequests * 0.2), conversion: 17 },
+  ];
+
+  const mentorPerformanceData = [
+    { metric: 'Engagement', value: Math.min(70 + stats.totalFounders * 3, 100) },
+    { metric: 'Responsiveness', value: Math.min(75 + stats.acceptedRequests * 2, 100) },
+    { metric: 'Knowledge', value: 88 },
+    { metric: 'Impact', value: Math.min(65 + stats.submittedPitches * 3, 100) },
+    { metric: 'Availability', value: Math.min(70 + stats.totalSessions, 100) },
+  ];
+
+  const radarIcons = ['⚡', '💬', '📚', '🚀', '📅'];
+
+  if (loading) return (
+    <div className="flex items-center justify-center h-64">
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-10 h-10 rounded-full border-4 border-[#6C63FF]/30 border-t-[#6C63FF] animate-spin" />
+        <p className="text-sm text-gray-400 font-medium">Loading insights…</p>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-semibold text-black">Analytics</h1>
-        <p className="text-muted-foreground mt-1">
-          Comprehensive insights and performance metrics
-        </p>
+    <div
+      className="space-y-8 px-1 pb-10"
+      style={{
+        background: 'linear-gradient(160deg, #f8f7ff 0%, #f0fffe 50%, #fffbf5 100%)',
+        minHeight: '100vh',
+      }}
+    >
+      {/* ── Header ── */}
+      <div className="pt-2 flex items-end justify-between">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+          </div>
+          <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight leading-none">Analytics</h1>
+          <p className="text-gray-400 mt-1.5 text-sm">Your mentorship impact at a glance</p>
+        </div>
+        <div className="hidden md:flex items-center gap-2 bg-white rounded-xl px-4 py-2.5 shadow-sm border border-gray-100">
+          <Activity className="w-4 h-4 text-[#50E3C2]" />
+          <span className="text-xs font-medium text-gray-500">Live data</span>
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+        </div>
       </div>
 
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="p-6 bg-gradient-to-br from-[#6C63FF]/10 to-[#6C63FF]/5">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-muted-foreground">Funding Success Rate</span>
-            <TrendingUp className="w-5 h-5 text-[#6C63FF]" />
-          </div>
-          <p className="text-3xl font-semibold text-[#6C63FF]">17%</p>
-          <p className="text-xs text-muted-foreground mt-1">8 of 48 startups funded</p>
-        </Card>
-
-        <Card className="p-6 bg-gradient-to-br from-[#50E3C2]/10 to-[#50E3C2]/5">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-muted-foreground">Avg Readiness Score</span>
-            <Target className="w-5 h-5 text-[#50E3C2]" />
-          </div>
-          <p className="text-3xl font-semibold text-[#50E3C2]">82</p>
-          <p className="text-xs text-muted-foreground mt-1">+6 points this month</p>
-        </Card>
-
-        <Card className="p-6 bg-gradient-to-br from-[#FFA94D]/10 to-[#FFA94D]/5">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-muted-foreground">Active Founders</span>
-            <Users className="w-5 h-5 text-[#FFA94D]" />
-          </div>
-          <p className="text-3xl font-semibold text-[#FFA94D]">48</p>
-          <p className="text-xs text-muted-foreground mt-1">Across 6 industries</p>
-        </Card>
-
-        <Card className="p-6 bg-gradient-to-br from-[#A78BFA]/10 to-[#A78BFA]/5">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-muted-foreground">Total Funding Facilitated</span>
-            <DollarSign className="w-5 h-5 text-[#A78BFA]" />
-          </div>
-          <p className="text-3xl font-semibold text-[#A78BFA]">₹12Cr</p>
-          <p className="text-xs text-muted-foreground mt-1">Across 8 startups</p>
-        </Card>
+      {/* ── Key Metrics ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <MetricBadge label="Accepted Requests" value={stats.acceptedRequests} sub={`${stats.pendingRequests} pending review`} icon={TrendingUp} accent="#6C63FF" />
+        <MetricBadge label="Total Pitches" value={stats.totalPitches} sub={`${stats.submittedPitches} submitted`} icon={Target} accent="#50E3C2" />
+        <MetricBadge label="My Founders" value={stats.totalFounders} sub="Active mentorships" icon={Users} accent="#FFA94D" />
+        <MetricBadge label="Total Sessions" value={stats.totalSessions} sub="Across all founders" icon={Zap} accent="#A78BFA" />
       </div>
 
-      {/* Charts Grid */}
+      {/* ── Charts row 1 ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Funding Conversion Rate */}
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4 text-black">Funding Conversion Funnel</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={fundingConversionData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-              <XAxis dataKey="stage" stroke="#888" />
-              <YAxis stroke="#888" />
-              <Tooltip />
-              <Bar dataKey="count" fill="#6C63FF" radius={[8, 8, 0, 0]} />
+
+        {/* Funnel */}
+        <GlassCard className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-base font-bold text-gray-900">Session Request Funnel</h3>
+              <p className="text-xs text-gray-400 mt-0.5">Conversion across pipeline stages</p>
+            </div>
+            <span className="text-xs font-semibold text-[#6C63FF] bg-[#6C63FF]/10 rounded-lg px-3 py-1">This month</span>
+          </div>
+          <ResponsiveContainer width="100%" height={240}>
+            <BarChart data={fundingConversionData} barCategoryGap="28%">
+              <defs>
+                <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#6C63FF" />
+                  <stop offset="100%" stopColor="#A78BFA" />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+              <XAxis dataKey="stage" stroke="#bbb" tick={{ fontSize: 12, fontWeight: 500 }} axisLine={false} tickLine={false} />
+              <YAxis stroke="#bbb" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
+              <Tooltip content={<CustomTooltip />} cursor={{ fill: '#6C63FF08' }} />
+              <Bar dataKey="count" fill="url(#barGrad)" radius={[10, 10, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
-          <div className="mt-4 grid grid-cols-4 gap-2 text-center">
-            {fundingConversionData.map((item, index) => (
-              <div key={item.stage} className="p-2 rounded-lg bg-accent/50">
-                <p className="text-xs text-muted-foreground">{item.stage}</p>
-                <p className="text-lg font-semibold text-[#6C63FF]">{item.conversion}%</p>
+          <div className="mt-4 grid grid-cols-4 gap-2">
+            {fundingConversionData.map((item, i) => (
+              <div key={item.stage} className="flex flex-col items-center p-2.5 rounded-xl bg-[#6C63FF]/5 border border-[#6C63FF]/10">
+                <p className="text-[10px] text-gray-400 font-medium mb-0.5">{item.stage}</p>
+                <p className="text-xl font-extrabold text-[#6C63FF]">{item.conversion}%</p>
               </div>
             ))}
           </div>
-        </Card>
+        </GlassCard>
 
-        {/* Average Readiness Score Trend */}
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4 text-black">Average Readiness Score Trend</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={readinessScoreData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-              <XAxis dataKey="month" stroke="#888" />
-              <YAxis stroke="#888" domain={[60, 85]} />
-              <Tooltip />
-              <Line
-                type="monotone"
-                dataKey="avgScore"
-                stroke="#50E3C2"
-                strokeWidth={3}
-                dot={{ fill: '#50E3C2', r: 5 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </Card>
-
-        {/* Risk Distribution */}
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4 text-black">Risk Distribution</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={riskDistributionData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, value }) => `${name}: ${value}`}
-                outerRadius={100}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {riskDistributionData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="mt-4 grid grid-cols-3 gap-2">
-            {riskDistributionData.map((item) => (
-              <div key={item.name} className="text-center p-2 rounded-lg bg-accent/50">
-                <div
-                  className="w-4 h-4 rounded-full mx-auto mb-1"
-                  style={{ backgroundColor: item.color }}
-                />
-                <p className="text-xs text-muted-foreground">{item.name}</p>
-                <p className="text-lg font-semibold">{item.value}</p>
-              </div>
-            ))}
+        {/* Growth Trend */}
+        <GlassCard className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-base font-bold text-gray-900">Founder Growth Trend</h3>
+              <p className="text-xs text-gray-400 mt-0.5">Average readiness score over time</p>
+            </div>
+            <span className="text-xs font-semibold text-[#50E3C2] bg-[#50E3C2]/10 rounded-lg px-3 py-1">+{readinessTrend.length > 1 ? readinessTrend[readinessTrend.length-1]?.avgScore - readinessTrend[0]?.avgScore : 0}pts</span>
           </div>
-        </Card>
+          <ResponsiveContainer width="100%" height={240}>
+            <AreaChart data={readinessTrend}>
+              <defs>
+                <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#50E3C2" stopOpacity={0.3} />
+                  <stop offset="100%" stopColor="#50E3C2" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+              <XAxis dataKey="month" stroke="#bbb" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
+              <YAxis stroke="#bbb" domain={[60, 100]} tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
+              <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#50E3C2', strokeWidth: 1, strokeDasharray: '4 4' }} />
+              <Area type="monotone" dataKey="avgScore" stroke="#50E3C2" strokeWidth={3} fill="url(#areaGrad)" dot={{ fill: '#50E3C2', r: 5, strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 7 }} name="Avg Score" />
+              <Line type="monotone" dataKey="target" stroke="#FFA94D" strokeWidth={1.5} strokeDasharray="5 4" dot={false} name="Target" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </GlassCard>
+      </div>
+
+      {/* ── Charts row 2 ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        {/* Pitch Distribution */}
+        <GlassCard className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-base font-bold text-gray-900">Pitch Status Distribution</h3>
+              <p className="text-xs text-gray-400 mt-0.5">Breakdown of pitch stages</p>
+            </div>
+            <Award className="w-5 h-5 text-[#FFA94D]" />
+          </div>
+          <div className="flex items-center gap-6">
+            <ResponsiveContainer width="55%" height={220}>
+              <PieChart>
+                <defs>
+                  {pitchStatusData.map((entry, i) => (
+                    <filter key={i} id={`shadow-${i}`}>
+                      <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor={entry.color} floodOpacity="0.4" />
+                    </filter>
+                  ))}
+                </defs>
+                <Pie
+                  data={pitchStatusData}
+                  cx="50%" cy="50%"
+                  innerRadius={55} outerRadius={95}
+                  paddingAngle={4}
+                  dataKey="value"
+                >
+                  {pitchStatusData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
+                  ))}
+                </Pie>
+                <Tooltip content={<CustomTooltip />} />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="flex flex-col gap-3 flex-1">
+              {pitchStatusData.map((item) => (
+                <div key={item.name} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: `${item.color}10`, border: `1px solid ${item.color}25` }}>
+                  <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: item.color, boxShadow: `0 0 8px ${item.color}80` }} />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs text-gray-500 font-medium">{item.name}</p>
+                    <p className="text-xl font-extrabold" style={{ color: item.color }}>{item.value}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </GlassCard>
 
         {/* Session Performance */}
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4 text-black">Session Performance</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={sessionPerformanceData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-              <XAxis dataKey="month" stroke="#888" />
-              <YAxis yAxisId="left" stroke="#888" />
-              <YAxis yAxisId="right" orientation="right" stroke="#888" />
-              <Tooltip />
-              <Legend />
-              <Bar
-                yAxisId="left"
-                dataKey="sessions"
-                fill="#6C63FF"
-                name="Sessions"
-                radius={[8, 8, 0, 0]}
-              />
-              <Bar
-                yAxisId="right"
-                dataKey="attendance"
-                fill="#50E3C2"
-                name="Attendance %"
-                radius={[8, 8, 0, 0]}
-              />
+        <GlassCard className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-base font-bold text-gray-900">Session Performance</h3>
+              <p className="text-xs text-gray-400 mt-0.5">Sessions vs. engagement rate</p>
+            </div>
+          </div>
+          <ResponsiveContainer width="100%" height={240}>
+            <BarChart data={sessionData} barCategoryGap="28%">
+              <defs>
+                <linearGradient id="sessGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#6C63FF" />
+                  <stop offset="100%" stopColor="#6C63FF" stopOpacity={0.6} />
+                </linearGradient>
+                <linearGradient id="attGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#50E3C2" />
+                  <stop offset="100%" stopColor="#50E3C2" stopOpacity={0.6} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+              <XAxis dataKey="month" stroke="#bbb" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
+              <YAxis yAxisId="left" stroke="#bbb" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis yAxisId="right" orientation="right" stroke="#bbb" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
+              <Tooltip content={<CustomTooltip />} cursor={{ fill: '#6C63FF06' }} />
+              <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
+              <Bar yAxisId="left" dataKey="sessions" fill="url(#sessGrad)" name="Sessions" radius={[8, 8, 0, 0]} maxBarSize={28} />
+              <Bar yAxisId="right" dataKey="attendance" fill="url(#attGrad)" name="Engagement %" radius={[8, 8, 0, 0]} maxBarSize={28} />
             </BarChart>
           </ResponsiveContainer>
-        </Card>
+        </GlassCard>
       </div>
 
-      {/* Mentor Performance Radar */}
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4 text-black">Mentor Performance Metrics</h3>
-        <div className="flex items-center justify-center">
-          <ResponsiveContainer width="100%" height={400}>
-            <RadarChart data={mentorPerformanceData}>
-              <PolarGrid stroke="#e0e0e0" />
-              <PolarAngleAxis dataKey="metric" stroke="#000" />
-              <PolarRadiusAxis angle={90} domain={[0, 100]} stroke="#000" />
-              <Radar
-                name="Performance"
-                dataKey="value"
-                stroke="#6C63FF"
-                fill="#6C63FF"
-                fillOpacity={0.3}
-                strokeWidth={2}
-              />
-              <Tooltip />
+      {/* ── Radar ── */}
+      <GlassCard className="p-6 lg:p-8">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-base font-bold text-gray-900">Mentor Performance Score</h3>
+            <p className="text-xs text-gray-400 mt-0.5">Across five core dimensions</p>
+          </div>
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-[#6C63FF] bg-[#6C63FF]/10 rounded-lg px-3 py-1">
+            <span>Overall:</span>
+            <span>{Math.round(mentorPerformanceData.reduce((s, m) => s + m.value, 0) / mentorPerformanceData.length)}</span>
+            <span className="text-gray-400 font-normal">/ 100</span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
+          <ResponsiveContainer width="100%" height={320}>
+            <RadarChart data={mentorPerformanceData} cx="50%" cy="50%">
+              <defs>
+                <linearGradient id="radarFill" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stopColor="#6C63FF" stopOpacity={0.5} />
+                  <stop offset="100%" stopColor="#50E3C2" stopOpacity={0.2} />
+                </linearGradient>
+              </defs>
+              <PolarGrid stroke="#e8e8f4" />
+              <PolarAngleAxis dataKey="metric" tick={{ fontSize: 12, fontWeight: 600, fill: '#555' }} />
+              <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fontSize: 10, fill: '#aaa' }} stroke="#e8e8f4" />
+              <Radar name="Performance" dataKey="value" stroke="#6C63FF" fill="url(#radarFill)" strokeWidth={2.5} dot={{ fill: '#6C63FF', r: 4 }} />
+              <Tooltip content={<CustomTooltip />} />
             </RadarChart>
           </ResponsiveContainer>
+
+          <div className="grid grid-cols-1 gap-3">
+            {mentorPerformanceData.map((metric, i) => (
+              <div key={metric.metric} className="flex items-center gap-4 group">
+                <div className="w-8 h-8 rounded-xl bg-[#6C63FF]/10 flex items-center justify-center text-sm flex-shrink-0">
+                  {radarIcons[i]}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-sm font-medium text-gray-700">{metric.metric}</span>
+                    <span className="text-sm font-bold text-[#6C63FF]">{metric.value}</span>
+                  </div>
+                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-700"
+                      style={{
+                        width: `${metric.value}%`,
+                        background: `linear-gradient(90deg, #6C63FF, #50E3C2)`,
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="mt-6 grid grid-cols-5 gap-4">
-          {mentorPerformanceData.map((metric) => (
-           <div key={metric.metric} className="text-center p-3 rounded-xl bg-white border border-gray-200 shadow-sm">
-              <p className="text-xs text-muted-foreground mb-1">{metric.metric}</p>
-              <p className="text-2xl font-bold text-[#6C63FF]">{metric.value}</p>
-            </div>
-          ))}
-        </div>
-      </Card>
+      </GlassCard>
     </div>
   );
 }

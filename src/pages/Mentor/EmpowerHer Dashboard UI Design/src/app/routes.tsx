@@ -52,7 +52,7 @@ import { createBrowserRouter } from "react-router-dom";
 import DashboardLayout from "./components/DashboardLayout";
 import Dashboard from "./pages/Dashboard";
 import SessionRequests from "./pages/SessionRequests";
-import SessionTracking from "./pages/SessionTracking";
+import SessionHub from "./pages/SessionTracking";
 import MyFounders from "./pages/MyFounders";
 import FounderDetail from "./pages/FounderDetail";
 import ReviewPitch from "./pages/ReviewPitch";
@@ -65,6 +65,7 @@ import Analytics from "./pages/Analytics";
 import Messages from "./pages/Messages";
 import Reviews from "./pages/Reviews";
 import Profile from "./pages/Profile";
+import MentorWorkspace from "./pages/MentorWorkspace";
 
 export const router = createBrowserRouter([
   {
@@ -74,7 +75,7 @@ export const router = createBrowserRouter([
       { index: true, element: <Dashboard /> },
 
       { path: "session-requests", element: <SessionRequests /> },
-      { path: "session-tracking", element: <SessionTracking /> },
+      { path: "session-tracking", element: <SessionHub /> },
 
       { path: "my-founders", element: <MyFounders /> },
 
@@ -87,25 +88,30 @@ export const router = createBrowserRouter([
 
       // IMPORTANT: make evaluation dynamic
       { path: "evaluation/:id", element: <ReadinessEvaluation /> },
+      { path: "progress", element: <FounderProgress /> },
       { path: "progress/:id", element: <FounderProgress /> },
-
       { path: "chat/:id", element: <ChatPage /> },
 
       {
         path: "funding-match",
         element: <FundingMatch />,
-        children: [
-          {
-            path: ":id",
-            element: <FundingMatch />,
-          },
-        ],
+        // children: [
+        //   {
+        //     path: ":id",
+        //     element: <FundingMatch />,
+        //   },
+        // ],
       },
 
       { path: "analytics", element: <Analytics /> },
       { path: "messages", element: <Messages /> },
       { path: "reviews", element: <Reviews /> },
       { path: "profile", element: <Profile /> },
+      { path: "workspace", element: <MentorWorkspace /> },
     ],
+  }
+], {
+  future: {
+    v7_relativeSplatPath: true,
   },
-]);
+});

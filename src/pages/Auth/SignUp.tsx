@@ -4,12 +4,14 @@ import { Mail, Lock, Rocket } from 'lucide-react';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { collection, doc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
+import logo from "../../logo.png";
+
 
 export default function SignUp() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState<'founder' | 'mentor' | 'admin'>('founder');
+const [role, setRole] = useState<'founder' | 'mentor' | 'admin' | 'investor'>('founder');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -58,11 +60,18 @@ export default function SignUp() {
 
         <div className="bg-white rounded-3xl shadow-2xl p-8 border">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl mb-4">
-              <Rocket className="w-8 h-8 text-white" />
-            </div>
-            <h1 className="text-3xl mb-2 text-black">Create Account</h1>
-            <p className="text-gray-600">Start your journey with EmpowerHub</p>
+ <div className="inline-flex items-center justify-center w-24 h-24 rounded-full  p-2 mb-4 ">
+  <div className="w-full h-full bg-white rounded-full flex items-center justify-center">
+    <img
+      src={logo}
+      alt="EmpowerHer"
+      className="w-100 h-100 object-contain"
+    />
+  </div>
+        </div>
+<h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-purple-600 via-pink-500 to-pink-600 bg-clip-text text-transparent">
+  Create Your Account
+</h1>            <p className="text-gray-600 text-lg">Start your journey with EmpowerHub</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -115,8 +124,8 @@ className="w-full pl-11 pr-4 py-3 border border-gray-300 bg-white text-black rou
 
             <div>
               <label className="block text-sm mb-2 text-gray-700">I am a</label>
-              <div className="grid grid-cols-3 gap-2">
-                <button
+<div className="grid grid-cols-4 gap-2">
+                  <button
                   type="button"
                   onClick={() => setRole('founder')}
                   className={`py-3 px-4 rounded-xl border-2 transition ${
@@ -149,6 +158,17 @@ className="w-full pl-11 pr-4 py-3 border border-gray-300 bg-white text-black rou
                 >
                   Admin
                 </button>
+                <button
+  type="button"
+  onClick={() => setRole('investor')}
+  className={`py-3 px-4 rounded-xl border-2 transition ${
+    role === 'investor'
+      ? 'border-purple-600 bg-gradient-to-br from-purple-50 to-pink-50 text-purple-700'
+      : 'border-gray-200 hover:border-gray-300'
+  }`}
+>
+  Investor
+</button>
               </div>
             </div>
 

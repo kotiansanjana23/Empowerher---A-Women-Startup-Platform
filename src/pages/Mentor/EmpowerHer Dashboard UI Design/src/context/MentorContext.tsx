@@ -21,12 +21,7 @@ interface MentorContextType {
   acceptRequest: (id: number) => void;
   rejectRequest: (id: number) => void;
 }
-// interface MentorContextType {
-//   pendingRequests: FounderType[];
-//   myFounders: FounderType[];
-//   acceptRequest: (id: number) => void;
-//   rejectRequest: (id: number) => void;
-// }
+
 
 const MentorContext = createContext<MentorContextType | null>(null);
 

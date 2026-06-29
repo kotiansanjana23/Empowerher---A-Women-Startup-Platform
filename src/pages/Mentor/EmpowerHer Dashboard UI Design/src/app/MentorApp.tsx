@@ -16,6 +16,7 @@ import Analytics from "./pages/Analytics";
 import Messages from "./pages/Messages";
 import Reviews from "./pages/Reviews";
 import Profile from "./pages/Profile";
+import MentorWorkspace from "./pages/MentorWorkspace";
 
 export default function MentorApp() {
   return (
@@ -31,6 +32,8 @@ export default function MentorApp() {
           <Route path="mentor-hub/:id" element={<MentorHub />} />
           <Route path="evaluation/:id" element={<ReadinessEvaluation />} />
           <Route path="progress/:id" element={<FounderProgress />} />
+          <Route path="progress" element={<FounderProgress />} />
+
           <Route path="chat/:id" element={<ChatPage />} />
           <Route path="funding-match" element={<FundingMatch />} />
           <Route path="funding-match/:id" element={<FundingMatch />} />
@@ -38,6 +41,7 @@ export default function MentorApp() {
           <Route path="messages" element={<Messages />} />
           <Route path="reviews" element={<Reviews />} />
           <Route path="profile" element={<Profile />} />
+          <Route path="workspace" element={<MentorWorkspace />} />
         </Route>
       </Routes>
     </MentorProvider>
