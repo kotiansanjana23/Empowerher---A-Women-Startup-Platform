@@ -1,169 +1,430 @@
-<<<<<<< HEAD
-# React + TypeScript + Vite
+# EmpowerHer
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+### A Multi-Role Digital Platform for Women Entrepreneurs
 
-Currently, two official plugins are available:
+EmpowerHer is a full-stack-style React application designed to create a connected ecosystem for **women founders, mentors, investors, and administrators**.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+The platform brings together startup discovery, mentorship, funding opportunities, pitch evaluation, communication, analytics, and administrative management into a single role-based application.
 
-## React Compiler
+> **Built with React, TypeScript, Vite, Firebase, Tailwind CSS, and modern UI libraries.**
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## 🚀 Overview
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Building and growing a startup often requires access to the right mentors, funding opportunities, communities, and resources.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+**EmpowerHer addresses this by connecting the major participants in the startup ecosystem through dedicated experiences:**
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+* 👩‍💼 **Founders** can manage their startup journey, submit pitches, connect with mentors and investors, and track progress.
+* 🧑‍🏫 **Mentors** can discover founders, review pitches, evaluate readiness, manage sessions, and communicate with founders.
+* 💼 **Investors** can explore startups, review startup information, manage funding requests, connect with founders, and participate in deal rooms.
+* 🛡️ **Administrators** can manage the platform, monitor applications, founders, mentors, investors, pitches, reports, revenue, and community activity.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+---
+
+## ✨ Key Features
+
+### 👩‍💼 Founder Experience
+
+* Founder dashboard
+* Founder profile management
+* Startup pitch submission
+* Mentor matching
+* Funding discovery
+* Investor communication
+* Founder–investor deal room
+* Chat and messaging
+* Training resources
+* Startup progress tracking
+* Readiness evaluation
+* Funding opportunities
+
+### 🧑‍🏫 Mentor Experience
+
+* Mentor dashboard
+* Founder discovery
+* My Founders workspace
+* Founder profiles and details
+* Session requests
+* Session tracking
+* Pitch review
+* Founder readiness evaluation
+* Founder progress tracking
+* Funding matching
+* Mentor workspace
+* Chat and messaging
+* Reviews and feedback
+* Analytics
+* Profile management
+
+### 💼 Investor Experience
+
+* Investor dashboard
+* Explore startups
+* Startup details
+* Interested startups
+* Funding requests
+* Mentor recommendations
+* Meetings
+* Analytics
+* Messaging
+* Investor deal room
+
+### 🛡️ Admin Experience
+
+The administrative dashboard provides centralized platform management, including:
+
+* Dashboard overview
+* Founder management
+* Mentor management
+* Investor management
+* Application management
+* Pitch review
+* Community management
+* Messages
+* Reports
+* Revenue
+* Platform settings
+* Statistics and analytics
+
+---
+
+## 🔐 Authentication & Authorization
+
+EmpowerHer uses **Firebase Authentication** for user authentication and a protected routing architecture for application access.
+
+The application includes:
+
+* Sign in
+* Sign up
+* Authentication state management
+* Protected routes
+* Role-specific application areas
+* Firebase Auth integration
+* Firestore integration
+* Firebase Storage integration
+
+The application uses a reusable `AuthContext` and `ProtectedRoute` to control access to authenticated areas.
+
+### Role-based application areas
+
+```text
+/admin/*
+/founder/*
+/mentor/*
+/investor/*
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 🏗️ Application Architecture
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+The application follows a modular React architecture with separate experiences for each major user role.
+
+```text
+src/
+├── components/
+│   └── ProtectedRoute.tsx
+│
+├── context/
+│   └── AuthContext.tsx
+│
+├── pages/
+│   ├── Auth/
+│   │   ├── SignIn.tsx
+│   │   └── SignUp.tsx
+│   │
+│   ├── Admin/
+│   │   ├── Dashboard
+│   │   ├── Founders
+│   │   ├── Mentors
+│   │   ├── Investors
+│   │   ├── Applications
+│   │   ├── ReviewPitch
+│   │   ├── Community
+│   │   ├── Messages
+│   │   ├── Reports
+│   │   ├── Revenue
+│   │   └── Settings
+│   │
+│   ├── Founder/
+│   │   ├── Dashboard
+│   │   ├── FounderProfile
+│   │   ├── MentorMatching
+│   │   ├── PitchSubmission
+│   │   ├── Funding
+│   │   ├── Training
+│   │   ├── Chat
+│   │   └── DealRoom
+│   │
+│   ├── Mentor/
+│   │   ├── Dashboard
+│   │   ├── MyFounders
+│   │   ├── SessionRequests
+│   │   ├── SessionTracking
+│   │   ├── ReviewPitch
+│   │   ├── ReadinessEvaluation
+│   │   ├── FounderProgress
+│   │   ├── FundingMatch
+│   │   ├── Analytics
+│   │   ├── Messages
+│   │   └── Workspace
+│   │
+│   └── Investors/
+│       ├── Dashboard
+│       ├── ExploreStartups
+│       ├── StartupDetails
+│       ├── FundingRequests
+│       ├── MentorRecommendations
+│       ├── Meetings
+│       ├── Analytics
+│       ├── Messages
+│       └── DealRoom
+│
+├── firebase.ts
+├── App.tsx
+├── main.tsx
+└── index.css
 ```
-=======
-# empowerher
 
+---
 
+## 🛠️ Tech Stack
 
-## Getting started
+### Frontend
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+* **React 18**
+* **TypeScript**
+* **Vite**
+* **React Router**
+* **Tailwind CSS**
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+### Backend / Cloud Services
 
-## Add your files
+* **Firebase Authentication**
+* **Cloud Firestore**
+* **Firebase Storage**
 
-* [Create](https://docs.gitlab.com/user/project/repository/web_editor/#create-a-file) or [upload](https://docs.gitlab.com/user/project/repository/web_editor/#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+### UI & Experience
 
+* **Radix UI**
+* **Framer Motion**
+* **Lucide React**
+* **Recharts**
+* **React Hook Form**
+* **Sonner**
+* **Embla Carousel**
+* **CMDK**
+
+### Development Tools
+
+* **ESLint**
+* **TypeScript ESLint**
+* **PostCSS**
+* **Autoprefixer**
+
+---
+
+## 📊 Dashboard & Analytics
+
+The platform includes dedicated dashboards for different roles instead of using a single generic interface.
+
+This allows each user type to access workflows relevant to their responsibilities.
+
+Examples include:
+
+* Founder progress
+* Startup discovery
+* Funding activity
+* Mentor–founder relationships
+* Pitch evaluation
+* Platform statistics
+* Investor analytics
+* Administrative reporting
+
+---
+
+## 🤝 Platform Workflow
+
+A typical platform workflow looks like:
+
+```text
+                ┌───────────────┐
+                │    Founder    │
+                └───────┬───────┘
+                        │
+             Submit Startup / Pitch
+                        │
+                        ▼
+                ┌───────────────┐
+                │    Mentor     │
+                └───────┬───────┘
+                        │
+              Evaluation & Guidance
+                        │
+                        ▼
+                ┌───────────────┐
+                │    Investor   │
+                └───────┬───────┘
+                        │
+              Funding / Deal Room
+                        │
+                        ▼
+                ┌───────────────┐
+                │    Startup    │
+                │    Growth     │
+                └───────────────┘
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/kotiansanjana/empowerher.git
-git branch -M main
-git push -uf origin main
+
+Administrators provide centralized oversight across the ecosystem.
+
+---
+
+## 📱 User Experience
+
+EmpowerHer is designed as a responsive, dashboard-oriented web application with:
+
+* Role-specific navigation
+* Reusable UI components
+* Interactive dashboards
+* Cards and data visualizations
+* Forms and dialogs
+* Notifications
+* Responsive layouts
+* Modern visual design
+* Dedicated workflows for each user role
+
+---
+
+## ⚙️ Getting Started
+
+### Prerequisites
+
+Make sure you have the following installed:
+
+* Node.js
+* npm
+* Git
+
+### 1. Clone the repository
+
+```bash
+git clone https://gitlab.com/kotiansanjana/empowerher.git
+cd empowerher
 ```
 
-## Integrate with your tools
+### 2. Install dependencies
 
-* [Set up project integrations](https://gitlab.com/kotiansanjana/empowerher/-/settings/integrations)
+```bash
+npm install
+```
 
-## Collaborate with your team
+### 3. Configure Firebase
 
-* [Invite team members and collaborators](https://docs.gitlab.com/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/user/project/merge_requests/creating_merge_requests/)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/user/project/issues/managing_issues/#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+Create your Firebase project and configure the required Firebase services:
 
-## Test and Deploy
+* Authentication
+* Firestore
+* Storage
 
-Use the built-in continuous integration in GitLab.
+For production deployments, Firebase configuration should be supplied through environment variables rather than committed directly to the repository.
 
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/topics/autodevops/requirements/)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ci/environments/protected_environments/)
+Example:
 
-***
+```env
+VITE_FIREBASE_API_KEY=your_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_auth_domain
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_storage_bucket
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
+```
 
-# Editing this README
+### 4. Start the development server
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+```bash
+npm run dev
+```
 
-## Suggestions for a good README
+The application will be available at the local Vite development URL.
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+---
 
-## Name
-Choose a self-explaining name for your project.
+## 📦 Production Build
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+Create a production build with:
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+```bash
+npm run build
+```
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+Preview the production build locally:
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+```bash
+npm run preview
+```
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+Run ESLint:
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+```bash
+npm run lint
+```
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+---
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+## 🔑 Main Routes
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+| Route         | Purpose                 |
+| ------------- | ----------------------- |
+| `/`           | EmpowerHer landing page |
+| `/signin`     | User authentication     |
+| `/signup`     | User registration       |
+| `/admin/*`    | Administration portal   |
+| `/founder/*`  | Founder experience      |
+| `/mentor/*`   | Mentor experience       |
+| `/investor/*` | Investor experience     |
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+---
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+## 🎯 What This Project Demonstrates
 
-## License
-For open source projects, say how it is licensed.
+This project demonstrates practical experience with:
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
->>>>>>> ecd61fbefdfdd60ae8fcd55a7dd6b2ad5760fef0
+* Component-based React development
+* TypeScript application development
+* SPA routing with React Router
+* Authentication state management
+* Protected routes
+* Role-based application architecture
+* Firebase integration
+* Cloud data services
+* Responsive dashboard design
+* Reusable UI components
+* Form handling
+* Data visualization
+* Modular frontend architecture
+* Multi-user product design
+
+---
+
+## 📌 Project Status
+
+**Completed**
+
+EmpowerHer is a completed project implementing a multi-role startup ecosystem platform for founders, mentors, investors, and administrators.
+
+---
+
+## 👩‍💻 Project
+
+**EmpowerHer — Women Entrepreneurship Platform**
+
+Repository:
+https://gitlab.com/kotiansanjana/empowerher
+
+---
+
+## 📄 License
+
+This project was developed as a project implementation and is intended primarily for educational and portfolio purposes.
