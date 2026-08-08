@@ -421,8 +421,7 @@ EmpowerHer is a completed project implementing a multi-role startup ecosystem pl
 **EmpowerHer — Women Entrepreneurship Platform**
 
 Repository:
-https://gitlab.com/kotiansanjana/empowerher
-
+https://github.com/kotiansanjana23/Empowerher---A-Women-Startup-Platform
 ---
 
 ## 📄 License
