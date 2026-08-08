@@ -245,41 +245,29 @@ Examples include:
 
 ---
 
-## 🤝 Platform Workflow
+🔐 Authentication & Role-Based Access
 
-A typical platform workflow looks like:
+EmpowerHer implements authentication and protected application areas using Firebase Authentication and a reusable authentication context.
 
-```text
-                ┌───────────────┐
-                │    Founder    │
-                └───────┬───────┘
-                        │
-             Submit Startup / Pitch
-                        │
-                        ▼
-                ┌───────────────┐
-                │    Mentor     │
-                └───────┬───────┘
-                        │
-              Evaluation & Guidance
-                        │
-                        ▼
-                ┌───────────────┐
-                │    Investor   │
-                └───────┬───────┘
-                        │
-              Funding / Deal Room
-                        │
-                        ▼
-                ┌───────────────┐
-                │    Startup    │
-                │    Growth     │
-                └───────────────┘
-```
+Different users are directed to role-specific experiences:
 
-Administrators provide centralized oversight across the ecosystem.
+                    ┌──────────────┐
+                    │    User      │
+                    └──────┬───────┘
+                           │
+                     Authentication
+                           │
+             ┌─────────────┼─────────────┐
+             │             │             │
+             ▼             ▼             ▼
+          Founder        Mentor       Investor
+             │             │             │
+             └─────────────┼─────────────┘
+                           │
+                           ▼
+                      Admin Portal
 
----
+Protected routes ensure that users access the functionality relevant to their role.
 
 ## 📱 User Experience
 
@@ -416,14 +404,12 @@ EmpowerHer is a completed project implementing a multi-role startup ecosystem pl
 
 ---
 
-## 👩‍💻 Project
+👩‍💻 Project
 
-**EmpowerHer — Women Entrepreneurship Platform**
+EmpowerHer — Women Entrepreneurship Platform
 
-Repository:
-https://github.com/kotiansanjana23/Empowerher---A-Women-Startup-Platform
----
+Built as a full-featured web application focused on creating opportunities for women entrepreneurs through mentorship, funding, networking, and startup support.
 
-## 📄 License
+📄 License
 
-This project was developed as a project implementation and is intended primarily for educational and portfolio purposes.
+This project was developed as a portfolio/academic project.
